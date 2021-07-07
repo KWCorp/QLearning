@@ -175,6 +175,11 @@ int main()
 	char** buff = new char*[mx];
 	for(int x = 0; x < mx; x++)
 		buff[x] = new char[my];
+
+	uint16_t** dist = new uint16_t*[mx];
+	for(int x = 0; x < mx; x++)
+		dist[x] = new uint16_t[my];
+
 	setlocale(LC_ALL, "utf-8");
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);	// Получение дескриптора устройства стандартного вывода
 
@@ -331,6 +336,36 @@ int main()
 				ax = rand() % mx; ay = rand() % my;
 			}
 			buff[ax][ay] = ant;
+
+			for(int y = 0; y < my; y++)
+				for(int x = 0; x < mx; x++)
+					dist[x][y] = -1;
+			dist[tx][ty] = 0;
+			{
+				size_t q = 1;
+				while(q > 0)
+				{
+					int qo = q;
+					q = 0;
+					for(int y = 1; y < my - 1; y++)
+						for(int x = 1; x < mx - 1; x++)
+						{
+							if(buff[x][y] == space && dist[x][y] == uint16_t(-1))
+							{
+								dist[x][y] = min(dist[x][y], dist[x + 1][y]);
+								dist[x][y] = min(dist[x][y], dist[x - 1][y]);
+								dist[x][y] = min(dist[x][y], dist[x][y + 1]);
+								dist[x][y] = min(dist[x][y], dist[x][y - 1]);
+								if(dist[x][y] != uint16_t(-1))
+									dist[x][y]++;
+							}
+							if(buff[x][y] == space && dist[x][y] == uint16_t(-1))
+								q++;
+						}
+					if(q == qo)
+						q = 0;
+				}
+			}
 		}
 		__T__++;
 		buff[ax][ay] = space;
@@ -341,26 +376,26 @@ int main()
 				t1 * 64 +
 				t2 * 32 +
 				d * 16 +
-				(buff[ax + 1][ay] == space) * 8 +
-				(buff[ax - 1][ay] == space) * 4 +
-				(buff[ax][ay + 1] == space) * 2 +
-				(buff[ax][ay - 1] == space) * 1;
+				(buff[ax + 1][ay] != wall) * 8 +
+				(buff[ax - 1][ay] != wall) * 4 +
+				(buff[ax][ay + 1] != wall) * 2 +
+				(buff[ax][ay - 1] != wall) * 1;
 		float r = (ax - tx) * (ax - tx) + (ay - ty) * (ay - ty);		
-		k = rand() % 2 == 0 ? Move.MaxA(s) : k;
+		k = rand() % 5 != 0 ? Move.MaxA(s) : (rand() % 4);
 		if(__Y__ < 8)
 		{
 			s = 
 				t1 * 64 +
 				t2 * 32 +
 				d * 16 +
-				(rand() % 16);
+				(__T__ % 16);
 		}
-		if(__Y__ < 8)
+		if(__Y__ < 2)
 		{
 			k = rand() % 4;
 		}
 		bool iswal = true, istarg = false;
-
+		uint16_t dio = dist[ax][ay];
 		switch(k)
 		{
 			case 0:
@@ -419,7 +454,7 @@ int main()
 
 		if(iswal)
 		{
-			if(__Y__ > 5)
+			if(__Y__ > 20)
 			if(Move.Q[s][k] > -1000)
 				Move.Update(s, k, -1000000);
 		}
@@ -429,9 +464,12 @@ int main()
 		}
 		else
 			Move.Update(s, k, 0);
-
-		Move.Update(s, k, r - nr);
-
+		if(abs(dio - dist[ax][ay]) == 1)
+		{
+			Move.Update(s, k, r - nr);
+			Move.Update(s, k, dio - dist[ax][ay]);
+		}
+		
 		
 		buff[ax][ay] = ant;
 		if(!iswal)
