@@ -205,7 +205,7 @@ int main()
 					buff[x][y] = x == 0 || y == 0 || x == mx - 1 || y == my - 1 ? wall : space;
 			int x = rand() % mx, y = rand() % my, k = -1;
 			
-			for(int i = 0, g = 0; i < (__Y__ < 10 ? 0 : (__Y__ < 20 ? 1000 : 10000)); i++)
+			for(int i = 0, g = 0; i < (__Y__ < 10 ? 0 : (__Y__ < 20 ? 500 : 2000)); i++)
 			{
 				g++;
 				if(buff[x][y] == space)
