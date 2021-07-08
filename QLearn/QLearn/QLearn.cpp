@@ -2,9 +2,17 @@
 //
 
 #include <iostream>
+#include "Header.h"
+
+using namespace qln;
 
 int main()
 {
+	size_t S[6]{3,3,3,3,4,4};
+	QLearner_M<6> Move(S, 4);
+
+	
+
     std::cout << "Hello World!\n";
 }
 
