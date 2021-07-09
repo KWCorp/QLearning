@@ -23,17 +23,6 @@ template<const size_t States, const size_t Actions> struct QDiscret
 
 	QDiscret()
 	{
-		srand(static_cast<unsigned int>(time(0)));
-		size_t Seed = 0;
-		{
-			for(int i = 0; i < 100; i++)
-			{
-				uint8_t *T = new uint8_t;
-				Seed += *T;
-				delete T;
-			}
-		}
-		Seed = Seed % 16127;
 		for(size_t s = 0; s < States; s++)
 			for(size_t a = 0; a < Actions; a++)
 			{
@@ -54,6 +43,19 @@ template<const size_t States, const size_t Actions> struct QDiscret
 		size_t m = 0;
 		for(int a = 1; a < Actions; a++)
 			if(Q[s][a] > Q[s][m]) m = a;
+		return m;
+	}
+
+	size_t SelectA(size_t s, size_t n)
+	{
+		size_t m = 0, om = -1;
+		for(int i = 0; i <= n; i++)
+		{
+			m = -1;
+			for(int a = 0; a < Actions; a++)
+				if((m == -1 || Q[s][a] > Q[s][m]) && (om == -1 || Q[s][a] < Q[s][om])) m = a;
+			om = m;
+		}
 		return m;
 	}
 
@@ -102,63 +104,6 @@ template<const size_t States, const size_t Actions> struct QDiscret
 	}
 };
 
-template<const size_t Vars, const size_t Actions, size_t InterpolationCount = 100> struct QInterpol
-{
-	float Q[Actions][Vars][InterpolationCount], B[Vars][2];
-
-	float LF = 0.01, DF = 0.01;
-
-	QInterpol(float * mins, float * maxs)
-	{
-		size_t Seed = 0;
-		{
-			for(int i = 0; i < 100; i++)
-			{
-				uint8_t *T = new uint8_t;
-				Seed += *T;
-				delete T;
-			}
-		}
-		Seed = Seed % 16127;
-		for(size_t a = 0; a < Actions; a++)
-			for(size_t v = 0; v < Vars; v++)
-				for(size_t i = 0; i < InterpolationCount; i++)
-				{
-					
-					Q[a][v][i] = ((a * 1931 + 1291 * v + i * 3329 + Seed * 317) % 100) * 0.01;
-				}
-	}
-
-	float MaxInS(size_t v)
-	{
-		float m = Q[0][v][0];
-		for(size_t a = 0; a < Actions; a++)
-			for(size_t i = 0; i < InterpolationCount; i++)
-				if(Q[a][v][i] > m) m = Q[a][v][i];
-		return m;
-	}
-
-	size_t MaxA(size_t v)
-	{
-		size_t m1 = 0, m2 = 0;
-		for(size_t a = 0; a < Actions; a++)
-				for(size_t i = 0; i < InterpolationCount; i++)
-					if(Q[a][v][i] > Q[m1][v][m2]) { m1 = a; m2 = i; }
-		return m1;
-	}
-
-	void Update(size_t s, size_t a, float d)
-	{
-		Q[s][a] += LF * (d);
-	}
-
-	void Update(size_t s, size_t a, size_t ns, float d)
-	{
-		Q[s][a] += LF * (d + DF * (MaxInS(ns)- Q[s][a]));
-	}
-};
-
-
 int main()
 {
 	//for(int i = 0; i < 256; i++)
@@ -196,6 +141,7 @@ int main()
 	int k = 0;
 	for(size_t __T__ = 0, __Y__ = 0;;)
 	{
+		float KK = 1 / float(1 + __Y__);
 		if(__T__ % __K__ == 0)
 		{		
 			__Y__++;
@@ -381,7 +327,7 @@ int main()
 				(buff[ax][ay + 1] != wall) * 2 +
 				(buff[ax][ay - 1] != wall) * 1;
 		float r = (ax - tx) * (ax - tx) + (ay - ty) * (ay - ty);		
-		k = rand() % 5 != 0 ? Move.MaxA(s) : (rand() % 4);
+		k = rand() % 3 != 0 ? Move.MaxA(s) : (Move.SelectA(s,1));
 		if(__Y__ < 8)
 		{
 			s = 
@@ -456,23 +402,23 @@ int main()
 		{
 			if(__Y__ > 20)
 			if(Move.Q[s][k] > -1000)
-				Move.Update(s, k, -1000000);
+				Move.Update(s, k, -1000000 * KK);
 		}
 		else if(nr < r)
 		{
-			Move.Update(s, k, 0);
+			//Move.Update(s, k, 0);
 		}
-		else
-			Move.Update(s, k, 0);
+		//else
+			//Move.Update(s, k, 0);
 		if(abs(dio - dist[ax][ay]) == 1)
 		{
-			Move.Update(s, k, r - nr);
-			Move.Update(s, k, dio - dist[ax][ay]);
+			Move.Update(s, k, (r - nr)  * KK);
+			Move.Update(s, k, (dio - dist[ax][ay]) * KK);
 		}
 		
 		
 		buff[ax][ay] = ant;
-		if(!iswal)
+		if(!iswal && __T__ % 4 == 0)
 		{
 			COORD position;
 			CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
@@ -551,11 +497,11 @@ int main()
 void Print(int mx, int my, char** buff)
 {
 	if(buff == 0) return;
-	COORD position;										// Объявление необходимой структуры
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);	// Получение дескриптора устройства стандартного вывода
-	position.X = 0;									// Установка координаты X
-	position.Y = 0;									// Установка координаты Y
-	SetConsoleCursorPosition(hConsole, position);		// Перемещение каретки по заданным координатам
+	COORD position;										
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);	
+	position.X = 0;									
+	position.Y = 0;									
+	SetConsoleCursorPosition(hConsole, position);	
 	std::string Sbuff = "";
 	for(int y = 0; y < my; y++)
 	{
