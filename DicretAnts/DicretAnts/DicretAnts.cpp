@@ -141,7 +141,7 @@ int main()
 	int k = 0;
 	for(size_t __T__ = 0, __Y__ = 0;;)
 	{
-		float KK = 1 / float(1 + __Y__);
+		float KK = 1 / float(1 + __Y__ * 0.1);
 		if(__T__ % __K__ == 0)
 		{		
 			__Y__++;
@@ -151,7 +151,7 @@ int main()
 					buff[x][y] = x == 0 || y == 0 || x == mx - 1 || y == my - 1 ? wall : space;
 			int x = rand() % mx, y = rand() % my, k = -1;
 			
-			for(int i = 0, g = 0; i < (__Y__ < 10 ? 0 : (__Y__ < 20 ? 500 : 2000)); i++)
+			for(int i = 0, g = 0; i < (__Y__ < 30 ? 100 : (__Y__ < 50 ? 200 : 1000)); i++)
 			{
 				g++;
 				if(buff[x][y] == space)
@@ -159,28 +159,6 @@ int main()
 					int f = 0;
 
 					f = 0;
-					{
-						for(int a = -1; a < 2; a++)
-							for(int b = -1; b < 2; b++)
-								if((a != 0 || b != 0) && a * b == 0)
-									if(
-										buff[x + a][y + b] == space
-										)
-									{
-										f += 4;
-									}
-									else if(
-										x + a == 0 ||
-										x + a == mx - 1 ||
-										y + b == 0 ||
-										y + b == my - 1
-										)
-									{
-										f += 4;
-									}
-					}
-					if(f > 16)
-						buff[x][y] = wall;
 
 					f = 0;
 
@@ -204,7 +182,7 @@ int main()
 										f+=2;
 									}
 					}
-					if(f > 25)
+					if(f > 27)
 						buff[x][y] = wall;
 
 					if(x > 1 && y > 1 && x < mx - 2 && y < my - 2)
@@ -230,7 +208,7 @@ int main()
 											f += 4;
 										}
 						}
-						if(f > 90)
+						if(f > 80)
 							buff[x][y] = wall;
 					}
 
@@ -327,7 +305,7 @@ int main()
 				(buff[ax][ay + 1] != wall) * 2 +
 				(buff[ax][ay - 1] != wall) * 1;
 		float r = (ax - tx) * (ax - tx) + (ay - ty) * (ay - ty);		
-		k = rand() % 3 != 0 ? Move.MaxA(s) : (Move.SelectA(s,1));
+		k = rand() % 3 != 0 ? Move.MaxA(s) : (rand() % 3 != 0 ? Move.SelectA(s,1) :  Move.SelectA(s,2));
 		if(__Y__ < 8)
 		{
 			s = 
@@ -336,7 +314,7 @@ int main()
 				d * 16 +
 				(__T__ % 16);
 		}
-		if(__Y__ < 2)
+		if(__Y__ < 10)
 		{
 			k = rand() % 4;
 		}
