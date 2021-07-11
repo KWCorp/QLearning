@@ -391,7 +391,7 @@ int main()
 		if(abs(dio - dist[ax][ay]) == 1)
 		{
 			Move.Update(s, k, (r - nr)  * KK);
-			Move.Update(s, k, (dio - dist[ax][ay]) * KK);
+			Move.Update(s, k, (dio - dist[ax][ay]) * 0);
 		}
 		
 		
