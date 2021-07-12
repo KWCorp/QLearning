@@ -15,7 +15,8 @@
 void Print(int mx, int my, char** buff);
 
 
-template<const size_t States, const size_t Actions> struct QDiscret
+template<const size_t States, const size_t Actions> 
+struct QDiscret
 {
 	float Q[States][Actions];
 
@@ -297,8 +298,8 @@ int main()
 			t1 = (ax - tx > 0 ? 0 : 1),
 			t2 = (ay - ty > 0 ? 0 : 1),
 			s =
-				t1 * 64 +
-				t2 * 32 +
+				t1 * 128 +
+				t2 * 64 +
 				d * 16 +
 				(buff[ax + 1][ay] != wall) * 8 +
 				(buff[ax - 1][ay] != wall) * 4 +
@@ -370,11 +371,13 @@ int main()
 
 		int nd = abs(ax - tx) > abs(ay - ty) ? (ax - tx > 0 ? 0 : 1) : (ax - tx > 0 ? 2 : 3),
 			ns =
+			t1 * 128 +
+			t2 * 64 +
 			d * 16 +
-			(buff[ax + 1][ay] == space) * 8 +
-			(buff[ax - 1][ay] == space) * 4 +
-			(buff[ax][ay + 1] == space) * 2 +
-			(buff[ax][ay - 1] == space) * 1;
+			(buff[ax + 1][ay] != wall) * 8 +
+			(buff[ax - 1][ay] != wall) * 4 +
+			(buff[ax][ay + 1] != wall) * 2 +
+			(buff[ax][ay - 1] != wall) * 1;
 
 		if(iswal)
 		{
@@ -390,8 +393,8 @@ int main()
 			//Move.Update(s, k, 0);
 		if(abs(dio - dist[ax][ay]) == 1)
 		{
-			Move.Update(s, k, (r - nr)  * KK);
-			Move.Update(s, k, (dio - dist[ax][ay]) * 0);
+			Move.Update(s, k, ns, (r - nr)  * KK);
+			Move.Update(s, k, ns, (dio - dist[ax][ay]) * 0);
 		}
 		
 		
