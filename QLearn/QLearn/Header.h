@@ -16,7 +16,7 @@ namespace qln
 		float LF = 0.01, DF = 0.01;
 		size_t state, action;
 
-		QLearner_M(size_t* _state, size_t _action)
+		QDLearner_M(size_t* _state, size_t _action)
 		{
 			state = 1;
 			for (int i = 0; i < Dim; i++)
@@ -80,7 +80,7 @@ namespace qln
 			Update(GetS(_s), a, d);
 		}
 
-		~QLerner_M()
+		~QDLearner_M()
 		{
 			for (int i = 0; i < state; i++)
 			{
@@ -97,7 +97,7 @@ namespace qln
 		float LF = 0.01, DF = 0.01;
 		size_t state, action;
 
-		QLearner(size_t _state, size_t _action)
+		QDLearner(size_t _state, size_t _action)
 		{
 			state = _state;
 			action = _action;
@@ -123,7 +123,7 @@ namespace qln
 			Q[s][a] += LF * (d - Q[s][a]);
 		}
 
-		~QLearner()
+		~QDLearner()
 		{
 			for (int i = 0; i < state; i++)
 			{
