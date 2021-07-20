@@ -8,10 +8,15 @@ using namespace qln;
 
 int main()
 {
-	size_t S[6]{3,3,3,3,4,4};
-	QLearner_M<6> Move(S, 4);
+	size_t S[4]{10,10,10,10};
+	QLearner_M<4> Move(S, 4);
 
-	
+	size_t s[4]
+	{
+		2, 5, 1, 6
+	};
+
+	Move.GetMaxA(s);
 
     std::cout << "Hello World!\n";
 }
