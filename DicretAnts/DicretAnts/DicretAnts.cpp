@@ -28,7 +28,7 @@ struct Neuron
 
 	float** links;
 
-	float LF = 0.001;
+	float LF = 0.0001;
 
 	Neuron(float _F(float x), float _DF(float x), uint32_t _layers, uint32_t* _sizes)
 	{
@@ -55,7 +55,7 @@ struct Neuron
 			{
 				links[l - 1] = new float[sizes[l] * (sizes[l - 1] + 1)];
 				for (int i = 0; i < sizes[l] * (sizes[l - 1] + 1); i++)
-					links[l - 1][i] = 0.5 - rand() / float(RAND_MAX) * 1;
+					links[l - 1][i] = 0.05 - rand() / float(RAND_MAX) * 0.1;
 			}
 		}
 		ids[layers] = S;
@@ -234,15 +234,15 @@ float DF_GATE(float x)
 
 int main()
 {
-	uint32_t s[5]{ 2,4,8,4,1 };
+	uint32_t s[5]{ 2,2,4,2,1 };
 	Neuron n(F_GATE, DF_GATE, 5, s);
 	//Neuron n(F_LRELU, DF_LRELU, 5, s);
 	float merr = 0, summerr = 0, o = 0;
-	for (int e = 0; e < 200 * 200 * 20000; e++)
+	for (size_t e = 0; e < size_t(200 * 200) * size_t(200000); e++)
 	{
 		float* in = n.neurons;
 		float* out = n.outptr;
-		if (e <= 200 * 200 * 1000)
+		if (e <= 200 * 200 * 100)
 		{
 			in[0] = -5 + e % 200 / 20.0;
 			in[1] = -5 + (e / 200) % 200 / 20.0;
@@ -252,18 +252,37 @@ int main()
 			in[0] = rand() / float(RAND_MAX) * 10 - 5;
 			in[1] = rand() / float(RAND_MAX) * 10 - 5;
 		}
+			
 		float t = exp(-(in[0] * in[0] + in[1] * in[1]));
 
 		n.Calc();
 
 		float err = t - out[0];
-		merr = max(err * err, merr);
-		summerr += err * err;
-		o++;
-		if (e % (200*200*20) == 0 && e != 0)
+		if (e % (200*200*20) == 0)
 		{
+			n.LF *= 0.95;
+			merr = 0;
+			summerr = 0;
+			o = 0;
+
+			for(int x = 0; x <= 200; x++) for(int y = 0; y <= 200; y++)
+			{
+				in[0] = -5 + x / 20.0;
+				in[1] = -5 + y / 20.0;
+
+				n.Calc();
+
+				float err = t - out[0];
+
+				o++;
+				summerr += err * err;
+				merr = max(merr, err * err);
+			}
 			summerr /= o;
-			std::cout << std::scientific << summerr << " " << merr << '\n';
+			std::cout << std::scientific << summerr << " " << merr << " " << n.LF;
+			if (e <= 200 * 200 * 100)
+				std::cout << " t";
+			std::cout << std::endl;
 			merr = 0;
 			summerr = 0;
 			o = 0;
