@@ -129,7 +129,7 @@ int main()
 	setlocale(LC_ALL, "utf-8");
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);	// Получение дескриптора устройства стандартного вывода
 
-	QDiscret<size_t(4 * 4 * 2 * 2 * 2 * 2), 4> Move;
+	QDiscret<size_t(4 * 8 * 2 * 2 * 2 * 2), 4> Move;
 
 	for(int y = 0; y < my; y++)
 		for(int x = 0; x < mx; x++)
@@ -303,9 +303,10 @@ int main()
 		Al = (Al > 7 ? Al - 8 : Al);
 		Al += 1;
 
-
+		int ko = k;
 		int d = Al, t1 = 0, t2 = 0,
 			s =
+				ko * 16 * 8 +
 				d * 16 +
 				(buff[ax + 1][ay] != wall) * 8 +
 				(buff[ax - 1][ay] != wall) * 4 +
@@ -326,7 +327,7 @@ int main()
 				Amin = min(Amin, A[a]);
 
 			for (int a = 0; a < 4; a++) if (A[a] > -100)
-				A[a] = sqrtf(A[a] - Amin);
+				A[a] = sqrtf(A[a] - Amin + 0.1);
 			else
 				A[a] = 0;
 
@@ -407,7 +408,7 @@ int main()
 				break;
 		}
 		float nr = (ax - tx) * (ax - tx) + (ay - ty) * (ay - ty);
-		if(istarg || r < 1 || nr < 1)
+		if(istarg || r < 1 || nr < 1 || ax < 0 || ay < 0 || ax >= mx || ay >= my)
 		{
 			__T__ = 0;
 			continue;
@@ -417,6 +418,7 @@ int main()
 
 		int nd = abs(ax - tx) > abs(ay - ty) ? (ax - tx > 0 ? 0 : 1) : (ax - tx > 0 ? 2 : 3),
 			ns =
+			k * 16 * 8 +
 			d * 16 +
 			(buff[ax + 1][ay] == space) * 8 +
 			(buff[ax - 1][ay] == space) * 4 +
@@ -434,6 +436,7 @@ int main()
 		}
 		//else
 			//Move.Update(s, k, 0);
+
 		if(abs(dio - dist[ax][ay]) == 1)
 		{
 			Move.Update(s, k, (r - nr)  * KK);
