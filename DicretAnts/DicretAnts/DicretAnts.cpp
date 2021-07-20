@@ -14,6 +14,7 @@
 
 void Print(int mx, int my, char** buff);
 
+const float PI = 3.1415926535897932384626433832795;
 
 template<const size_t States, const size_t Actions> struct QDiscret
 {
@@ -26,7 +27,7 @@ template<const size_t States, const size_t Actions> struct QDiscret
 		for(size_t s = 0; s < States; s++)
 			for(size_t a = 0; a < Actions; a++)
 			{
-				Q[s][a] = 0;
+				Q[s][a] = rand() / float(RAND_MAX);
 			}
 	}
 
@@ -61,12 +62,12 @@ template<const size_t States, const size_t Actions> struct QDiscret
 
 	void Update(size_t s, size_t a, float d)
 	{
-		Q[s][a] += LF * (d);
+		Q[s][a] += LF * (d - Q[s][a]);
 	}
 
 	void Update(size_t s, size_t a, size_t ns, float d)
 	{
-		Q[s][a] += LF * (d + DF * (MaxInS(ns)- Q[s][a]));
+		Q[s][a] += LF * (d + DF * MaxInS(ns)- Q[s][a]);
 	}
 
 	void Normalize(float summ)
@@ -139,9 +140,11 @@ int main()
 	size_t __K__ = 1e4;
 	srand(static_cast<unsigned int>(time(NULL)));
 	int k = 0;
-	for(size_t __T__ = 0, __Y__ = 0;;)
+	for(size_t __T__ = 0, __Y__ = 0, __W__ = 0;;)
 	{
-		float KK = 1 / float(1 + __Y__ * 0.1);
+		float KK = 10;
+		Move.LF = 0.001;
+
 		if(__T__ % __K__ == 0)
 		{		
 			__Y__++;
@@ -293,30 +296,74 @@ int main()
 		}
 		__T__++;
 		buff[ax][ay] = space;
-		int d = abs(ax - tx) > abs(ay - ty) ? (ax - tx > 0 ? 0 : 1) : (ay - ty > 0 ? 2 : 3),
-			t1 = (ax - tx > 0 ? 0 : 1),
-			t2 = (ay - ty > 0 ? 0 : 1),
+		float r = (ax - tx) * (ax - tx) + (ay - ty) * (ay - ty);
+
+		float Al = acos((ax - tx) / sqrtf(r));
+		Al = (ay - ty >= 0 ? Al : 2 * PI - Al) * 4 / PI;
+		Al = (Al > 7 ? Al - 8 : Al);
+		Al += 1;
+
+
+		int d = Al, t1 = 0, t2 = 0,
 			s =
-				t1 * 64 +
-				t2 * 32 +
 				d * 16 +
 				(buff[ax + 1][ay] != wall) * 8 +
 				(buff[ax - 1][ay] != wall) * 4 +
 				(buff[ax][ay + 1] != wall) * 2 +
 				(buff[ax][ay - 1] != wall) * 1;
-		float r = (ax - tx) * (ax - tx) + (ay - ty) * (ay - ty);		
-		k = rand() % 3 != 0 ? Move.MaxA(s) : (rand() % 3 != 0 ? Move.SelectA(s,1) :  Move.SelectA(s,2));
+
+		if (d  == 0)
+		{
+			Al = Al;
+		}
+
+		float A[4];
+		for (int a = 0; a < 4; a++)
+			A[a] = Move.Q[s][a];
+		{
+			float Amin = 10000;
+			for (int a = 0; a < 4; a++) if(A[a] > -100)
+				Amin = min(Amin, A[a]);
+
+			for (int a = 0; a < 4; a++) if (A[a] > -100)
+				A[a] = sqrtf(A[a] - Amin);
+			else
+				A[a] = 0;
+
+			float S = 0;
+			for (int a = 0; a < 4; a++) if (A[a] > -100)
+				S += A[a];
+
+			for (int a = 0; a < 4; a++) if (A[a] > -100)
+				A[a] /= S;
+		}
+
+		{
+			k = 3;
+			float rnd = rand() / float(RAND_MAX);
+			for (int a = 0; a < 4; a++) if (A[a] > -100)
+				if (A[a] > rnd || a == 4 - 1)
+				{
+					k = a;
+					break;
+				}
+				else
+				{
+					rnd -= A[a];
+				}
+
+		}
+
+		//k = rand() % 3 != 0 ? Move.MaxA(s) : k;
 		if(__Y__ < 8)
 		{
 			s = 
-				t1 * 64 +
-				t2 * 32 +
 				d * 16 +
 				(__T__ % 16);
 		}
 		if(__Y__ < 10)
 		{
-			k = rand() % 4;
+			//k = rand() % 4;
 		}
 		bool iswal = true, istarg = false;
 		uint16_t dio = dist[ax][ay];
@@ -378,9 +425,8 @@ int main()
 
 		if(iswal)
 		{
-			if(__Y__ > 20)
-			if(Move.Q[s][k] > -1000)
-				Move.Update(s, k, -1000000 * KK);
+			if (__Y__ > 20)
+				Move.Q[s][k] = -1000;
 		}
 		else if(nr < r)
 		{
@@ -396,8 +442,9 @@ int main()
 		
 		
 		buff[ax][ay] = ant;
-		if(!iswal && __T__ % 4 == 0)
+		if(!iswal && __T__ % 1 == 0 && __Y__ > 1000)
 		{
+			Print(mx, my, buff);
 			COORD position;
 			CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
 			GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
@@ -417,7 +464,7 @@ int main()
 			position.X = mx;
 			position.Y = 0;
 			SetConsoleCursorPosition(hConsole, position);
-			std::cout << "dir " << k << " state " << s << ' ' << __T__ / float(__K__);
+			std::cout << "dir " << d << " state " << s << " Score " << __Y__ << ' ' << __T__ / float(__K__);
 			position.X = mx;
 			position.Y = 1;
 			SetConsoleCursorPosition(hConsole, position);
@@ -460,11 +507,11 @@ int main()
 					default:
 						break;
 				}
-				std::cout << Move.Q[s][q] << ' ';
+				std::cout << A[q] << ' ';
 			}
-			//std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			std::cout << std::endl;
+			std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
-			Print(mx, my, buff);
 		}
 	}
 
