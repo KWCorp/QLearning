@@ -4,40 +4,40 @@ class LayerMtp :
     public INeuro
 {
 public:
-	float*& GetIn();
+	double*& GetIn()override;
 
-	float*& GetOut();
+	double*& GetOut()override;
 
-	float*& GetInErr();
+	double*& GetInErr()override;
 
-	float*& GetOutErr();
+	double*& GetOutErr()override;
 
-	int GetInSize();
+	int GetInSize()override;
 
-	int GetOutSize();
+	int GetOutSize() override;
 
-	void SetFunc(float (*_F)(float), float (*_DF)(float));
+	void SetFunc(double (*_F)(double), double (*_DF)(double))override;
 
-	void SetFunc1(float (*_F)(float), float (*_DF)(float));
+	void SetFunc1(double (*_F)(double), double (*_DF)(double));
 
-	void SetFunc2(float (*_F)(float), float (*_DF)(float));
+	void SetFunc2(double (*_F)(double), double (*_DF)(double));
 
-	void Calc();
+	void Calc()override;
 
-	void Train();
+	void Train()override;
 
-	float* in, * out, * inerr, * outerr, * outbase1, * outbase2;
+	double* in, * out, * inerr, * outerr, * outbase1, * outbase2;
 
-	float* links1, *links2, LF = 0.01;
+	double* links1, *links2, LF = 0.01;
 
 	int ins, outs;
 
-	float (*F1)(float);
-	float (*DF1)(float);
+	double (*F1)(double);
+	double (*DF1)(double);
 
-	float (*F2)(float);
-	float (*DF2)(float);
+	double (*F2)(double);
+	double (*DF2)(double);
 
-	LayerMtp(int _ins, int _outs, float* _in = 0, float* _out = 0, float* _ine = 0, float* _oute = 0);
+	LayerMtp(int _ins, int _outs, double* _in = 0, double* _out = 0, double* _ine = 0, double* _oute = 0);
 };
 

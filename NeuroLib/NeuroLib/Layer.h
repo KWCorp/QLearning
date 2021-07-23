@@ -4,33 +4,33 @@ class Layer :
 	public INeuro
 {
 public:
-	float*& GetIn();
+	double*& INeuro::GetIn() override;
 
-	float*& GetOut();
+	double*& INeuro::GetOut() override;
 
-	float*& GetInErr();
+	double*& INeuro::GetInErr()override;
 
-	float*& GetOutErr();
+	double*& INeuro::GetOutErr()override;
 
-	int GetInSize();
+	int INeuro::GetInSize()override;
 
-	int GetOutSize();
+	int INeuro::GetOutSize()override;
 
-	void SetFunc(float (*_F)(float) , float (*_DF)(float));
+	void INeuro::SetFunc(double (*_F)(double) , double (*_DF)(double))override;
 
-	void Calc();
+	void INeuro::Calc()override;
 
-	void Train();
+	void INeuro::Train()override;
 
-	float* in, *out, *inerr, *outerr, *outbase;
+	double* in, *out, *inerr, *outerr, *outbase;
 
-	float* links, LF = 0.01;
+	double* links, LF = 0.01;
 
 	int ins, outs;
 
-	float (*F)(float);
-	float (*DF)(float);
+	double (*F)(double);
+	double (*DF)(double);
 
-	Layer(int _ins, int _outs, float* _in = 0, float* _out = 0, float* _ine = 0, float* _oute = 0);
+	Layer(int _ins, int _outs, double* _in = 0, double* _out = 0, double* _ine = 0, double* _oute = 0);
 };
 

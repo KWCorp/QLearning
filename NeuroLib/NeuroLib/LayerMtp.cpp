@@ -1,76 +1,61 @@
 #include "LayerMtp.h"
 
-float F_RELU(float x)
+LayerMtp::LayerMtp(int _ins, int _outs, double* _in, double* _out, double* _ine, double* _oute)
 {
-	return 0.99 * x * (x > 0) + 0.01 * x;
-}
-
-float DF_RELU(float x)
-{
-	return 0.99 + (x > 0) + 0.01;
-}
-
-float F_GATE(float x)
-{
-	return x + 1 + (1 / (1 - x) - x - 1) * (x < 0);
-}
-
-float DF_GATE(float x)
-{
-	return 1 + (1 / (1 - 2 * x + x * x) - 1) * (x < 0);
-}
-
-LayerMtp::LayerMtp(int _ins, int _outs, float* _in, float* _out, float* _ine, float* _oute)
-{
-	F1 = F_RELU;
-	DF1 = DF_RELU;
+	F1 = F_SGATE;
+	DF1 = DF_SGATE;
 	F2 = F_GATE;
 	DF2 = DF_GATE;
 	ins = _ins;
 	outs = _outs;
 	if (_in == 0)
-		in = new float[ins];
+		in = new double[ins];
 	else
 		in = _in;
 
 	if (_out == 0)
-		out = new float[outs];
+		out = new double[outs];
 	else
 		out = _out;
 
 	if (_ine == 0)
-		inerr = new float[ins];
+		inerr = new double[ins];
 	else
 		inerr = _ine;
 
 	if (_oute == 0)
-		outerr = new float[outs];
+		outerr = new double[outs];
 	else
 		outerr = _oute;
 
-	outbase1 = new float[outs];
-	outbase2 = new float[outs];
+	outbase1 = new double[outs];
+	outbase2 = new double[outs];
 
-	links1 = new float[(ins + 1) * outs];
-	links2 = new float[(ins + 1) * outs];
+	links1 = new double[(ins + 1) * outs];
+	links2 = new double[(ins + 1) * outs];
+	for (int l = 0; l < (ins + 1) * outs; l++)
+	{
+		links1[l] = rand() / double(RAND_MAX) * 2 - 1;
+		links2[l] = rand() / double(RAND_MAX) * 2 - 1;
+	}
 }
 
-float*& LayerMtp::GetIn()
+double*& LayerMtp::GetIn()
 {
 	return in;
 }
 
-float*& LayerMtp::GetOut()
+double*& LayerMtp::GetOut()
 {
 	return out;
 }
 
-float*& LayerMtp::GetInErr()
+double*& LayerMtp::GetInErr()
 {
 	return inerr;
 }
 
-float*& LayerMtp::GetOutErr()
+double*& LayerMtp::GetOutErr()
 {
 	return outerr;
 }
@@ -85,7 +70,7 @@ int LayerMtp::GetOutSize()
 	return outs;
 }
 
-void LayerMtp::SetFunc(float (*_F)(float), float (*_DF)(float))
+void LayerMtp::SetFunc(double (*_F)(double), double (*_DF)(double))
 {
 	F1 = _F;
 	DF1 = _DF;
@@ -93,13 +78,13 @@ void LayerMtp::SetFunc(float (*_F)(float), float (*_DF)(float))
 	DF2 = _DF;
 }
 
-void LayerMtp::SetFunc1(float (*_F)(float), float (*_DF)(float))
+void LayerMtp::SetFunc1(double (*_F)(double), double (*_DF)(double))
 {
 	F1 = _F;
 	DF1 = _DF;
 }
 
-void LayerMtp::SetFunc2(float (*_F)(float), float (*_DF)(float))
+void LayerMtp::SetFunc2(double (*_F)(double), double (*_DF)(double))
 {
 	F2 = _F;
 	DF2 = _DF;

@@ -1,23 +1,38 @@
 ﻿#pragma once
 
+#include <cmath>
+
+double F_RELU(double x);
+
+double DF_RELU(double x);
+
+double F_GATE(double x);
+
+double DF_GATE(double x);
+
+double F_SGATE(double x);
+
+double DF_SGATE(double x);
+
+
 class INeuro
 {
 public:
-	virtual float*& GetIn();
+	virtual double*& GetIn() = 0;
 
-	virtual float*& GetOut();
+	virtual double*& GetOut() = 0;
 
-	virtual float*& GetInErr();
+	virtual double*& GetInErr() = 0;
 
-	virtual float*& GetOutErr();
+	virtual double*& GetOutErr() = 0;
 
-	virtual int GetInSize();
+	virtual int GetInSize() = 0;
 
-	virtual int GetOutSize();
+	virtual int GetOutSize() = 0;
 
-	virtual void SetFunc(float (*_F)(float), float (*_DF)(float));
+	virtual void SetFunc(double (*_F)(double), double (*_DF)(double)) = 0;
 
-	virtual void Calc();
+	virtual void Calc() = 0;
 
-	virtual void Train();
+	virtual void Train() = 0;
 };

@@ -1,62 +1,59 @@
 #include "Layer.h"
 
-float F_RELU(float x)
-{
-	return 0.99 * x * (x > 0) + 0.01 * x;
-}
 
-float DF_RELU(float x)
-{
-	return 0.99 + (x > 0) + 0.01;
-}
 
-Layer::Layer(int _ins, int _outs, float* _in, float* _out, float* _ine, float* _oute)
+Layer::Layer(int _ins, int _outs, double* _in, double* _out, double* _ine, double* _oute)
 {
 	F = F_RELU;
 	DF = DF_RELU;
 	ins = _ins;
 	outs = _outs;
 	if (_in == 0)
-		in = new float[ins];
+		in = new double[ins];
 	else
 		in = _in;
 
 	if (_out == 0)
-		out = new float[outs];
+		out = new double[outs];
 	else
 		out = _out;
 
 	if (_ine == 0)
-		inerr = new float[ins];
+		inerr = new double[ins];
 	else
 		inerr = _ine;
 
 	if (_oute == 0)
-		outerr = new float[outs];
+		outerr = new double[outs];
 	else
 		outerr = _oute;
 
-	outbase = new float[outs];
+	outbase = new double[outs];
 
-	links = new float[(ins + 1) * outs];
+	links = new double[(ins + 1) * outs];
+
+	for (int l = 0; l < (ins + 1) * outs; l++)
+	{
+		links[l] = rand() / double(RAND_MAX) * 2 - 1;
+	}
 }
 
-float*& Layer::GetIn()
+double*& Layer::GetIn()
 {
 	return in;
 }
 
-float*& Layer::GetOut()
+double*& Layer::GetOut()
 {
 	return out;
 }
 
-float*& Layer::GetInErr()
+double*& Layer::GetInErr()
 {
 	return inerr;
 }
 
-float*& Layer::GetOutErr()
+double*& Layer::GetOutErr()
 {
 	return outerr;
 }
@@ -71,7 +68,7 @@ int Layer::GetOutSize()
 	return outs;
 }
 
-void Layer::SetFunc(float (*_F)(float), float (*_DF)(float))
+void Layer::SetFunc(double (*_F)(double), double (*_DF)(double))
 {
 	F = _F;
 	DF = _DF;
