@@ -28,7 +28,7 @@ struct Neuron
 
 	float** links;
 
-	float LF = 0.0001;
+	float LF = 0.001;
 
 	Neuron(float _F(float x), float _DF(float x), uint32_t _layers, uint32_t* _sizes)
 	{
@@ -55,7 +55,7 @@ struct Neuron
 			{
 				links[l - 1] = new float[sizes[l] * (sizes[l - 1] + 1)];
 				for (int i = 0; i < sizes[l] * (sizes[l - 1] + 1); i++)
-					links[l - 1][i] = 0.05 - rand() / float(RAND_MAX) * 0.1;
+					links[l - 1][i] = 1 - rand() / float(RAND_MAX) * 2;
 			}
 		}
 		ids[layers] = S;
@@ -119,6 +119,86 @@ struct Neuron
 		return out;
 	}
 
+};
+
+struct MedianGradientTriner
+{
+	Neuron* base = 0;
+
+	float** deltas = 0;
+
+	float C = 0;
+
+	MedianGradientTriner(Neuron* _base)
+	{
+		Init(_base);
+	}
+
+	void Init(Neuron* _base)
+	{
+		if (base != 0)
+		{
+			for (int l = 0; l < base->layers - 1; l++)
+			{
+				delete[] deltas[l];
+			}
+			delete[] deltas;
+		}
+		C = 0;
+		base = _base;
+		deltas = new float* [base->layers - 1];
+		for (int l = 0; l < base->layers; l++)
+		{
+			if (l != 0)
+			{
+				deltas[l - 1] = new float[base->sizes[l] * (base->sizes[l - 1] + 1)];
+				for (int i = 0; i < base->sizes[l] * (base->sizes[l - 1] + 1); i++)
+					deltas[l - 1][i] = 0;
+			}
+		}
+	} 
+
+	void Accum(float* _err)
+	{
+		for (int i = 0; i < base->outs; i++)
+			base->err[base->ids[base->layers - 1] + i] = _err[i];
+
+		for (int l = base->layers - 2; l >= 0; l--)
+		{
+			for (int i = 0; i < base->sizes[l]; i++)
+			{
+				base->err[base->ids[l] + i] = 0;
+				for (int o = 0; o < base->sizes[l + 1]; o++)
+					base->err[base->ids[l] + i] += base->err[base->ids[l + 1] + o] * base->links[l][o + i * base->sizes[l + 1]] * base->DF(base->base[base->ids[l + 1] + o]);
+			}
+
+			for (int o = 0; o < base->sizes[l + 1]; o++)
+			{
+				for (int i = 0; i < base->sizes[l]; i++)
+					deltas[l][o + i * base->sizes[l + 1]] += base->LF * base->err[base->ids[l + 1] + o] * base->neurons[base->ids[l] + i] * base->DF(base->base[base->ids[l + 1] + o]);
+				deltas[l][o + base->sizes[l] * base->sizes[l + 1]] += base->LF * base->err[base->ids[l + 1] + o] * base->DF(base->base[base->ids[l + 1] + o]);
+			}
+		}
+		C++;
+	}
+
+	void Train()
+	{
+		for (int l = base->layers - 2; l >= 0; l--)
+		{
+			for (int o = 0; o < base->sizes[l + 1]; o++)
+			{
+				for (int i = 0; i < base->sizes[l]; i++)
+					base->links[l][o + i * base->sizes[l + 1]] += deltas[l][o + i * base->sizes[l + 1]] / C;
+				base->links[l][o + base->sizes[l] * base->sizes[l + 1]] += deltas[l][o + base->sizes[l] * base->sizes[l + 1]] / C;
+
+				for (int i = 0; i < base->sizes[l]; i++)
+					deltas[l][o + i * base->sizes[l + 1]] = 0;
+				deltas[l][o + base->sizes[l] * base->sizes[l + 1]] = 0;
+			}
+		}
+		C = 0;
+	}
 };
 
 
@@ -234,69 +314,6 @@ float DF_GATE(float x)
 
 int main()
 {
-	uint32_t s[5]{ 2,2,4,2,1 };
-	Neuron n(F_GATE, DF_GATE, 5, s);
-	//Neuron n(F_LRELU, DF_LRELU, 5, s);
-	float merr = 0, summerr = 0, o = 0;
-	for (size_t e = 0; e < size_t(200 * 200) * size_t(200000); e++)
-	{
-		float* in = n.neurons;
-		float* out = n.outptr;
-		if (e <= 200 * 200 * 100)
-		{
-			in[0] = -5 + e % 200 / 20.0;
-			in[1] = -5 + (e / 200) % 200 / 20.0;
-		}
-		else
-		{
-			in[0] = rand() / float(RAND_MAX) * 10 - 5;
-			in[1] = rand() / float(RAND_MAX) * 10 - 5;
-		}
-			
-		float t = exp(-(in[0] * in[0] + in[1] * in[1]));
-
-		n.Calc();
-
-		float err = t - out[0];
-		if (e % (200*200*20) == 0)
-		{
-			n.LF *= 0.95;
-			merr = 0;
-			summerr = 0;
-			o = 0;
-
-			for(int x = 0; x <= 200; x++) for(int y = 0; y <= 200; y++)
-			{
-				in[0] = -5 + x / 20.0;
-				in[1] = -5 + y / 20.0;
-
-				n.Calc();
-
-				float err = t - out[0];
-
-				o++;
-				summerr += err * err;
-				merr = max(merr, err * err);
-			}
-			summerr /= o;
-			std::cout << std::scientific << summerr << " " << merr << " " << n.LF;
-			if (e <= 200 * 200 * 100)
-				std::cout << " t";
-			std::cout << std::endl;
-			merr = 0;
-			summerr = 0;
-			o = 0;
-		}
-
-		n.Train(&err);
-
-
-	}
-
-
-
-	return 0;
-
 	const char wall = char(219);
 	const char space = ' ';
 	const char ant = char(253);
