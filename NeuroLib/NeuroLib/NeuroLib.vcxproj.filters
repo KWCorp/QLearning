@@ -21,7 +21,7 @@
     <ClInclude Include="Layer.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="NeuralNetwork.h">
+    <ClInclude Include="LayerMtp.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
@@ -32,7 +32,7 @@
     <ClCompile Include="Layer.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="NeuralNetwork.cpp">
+    <ClCompile Include="LayerMtp.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>

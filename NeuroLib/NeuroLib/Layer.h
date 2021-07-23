@@ -16,18 +16,21 @@ public:
 
 	int GetOutSize();
 
-	void SetFunc(float* (float));
+	void SetFunc(float (*_F)(float) , float (*_DF)(float));
 
 	void Calc();
 
 	void Train();
 
-	float* in, *out, *inerr, *outerr;
+	float* in, *out, *inerr, *outerr, *outbase;
 
-	float* links;
+	float* links, LF = 0.01;
 
 	int ins, outs;
 
-	Layer(int _ins, int _outs, float* _in = 0, float* _out = 0);
+	float (*F)(float);
+	float (*DF)(float);
+
+	Layer(int _ins, int _outs, float* _in = 0, float* _out = 0, float* _ine = 0, float* _oute = 0);
 };
 

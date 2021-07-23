@@ -15,7 +15,7 @@ public:
 
 	virtual int GetOutSize();
 
-	virtual void SetFunc(float* (float));
+	virtual void SetFunc(float (*_F)(float), float (*_DF)(float));
 
 	virtual void Calc();
 
