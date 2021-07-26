@@ -20,40 +20,37 @@ int main()
     double neurons[100];
     double err[100];
 
-    neuro.push_back(new Layer(3, 10, &neurons[0], &neurons[3], &err[0], &err[3]));
-    neuro.push_back(new LayerMtp(10, 1, &neurons[3], &neurons[13], &err[3], &err[13]));
-    auto L1 = ((Layer*)neuro[0]); L1 ->LF = 0.0001;
-    auto L2 = ((LayerMtp*)neuro[1]); L2->LF = 0.0001;
-    L1->SetFunc(F_SGATE, DF_SGATE);
+    neuro.push_back(new LayerMtp(3, 10, &neurons[0], &neurons[3], &err[0], &err[3]));
+    neuro.push_back(new Layer(10, 10, &neurons[3], &neurons[13], &err[3], &err[13]));
+    neuro.push_back(new Layer(10, 1, &neurons[13], &neurons[23], &err[13], &err[23]));
+    auto L1 = ((LayerMtp*)neuro[0]); L1 ->LF = 0.001;
+    auto L2 = ((Layer*)neuro[1]); L2->LF = 0.001;
+    //L1->SetFunc(F_GATE, DF_GATE);
     double serr = 0, C = 0;
 
-    double train[1000][4];
-    for (int i = 0; i < 1000; i++)
+    double train[10000][4];
+    for (int i = 0; i < 10000; i++)
     {
-        double v = rand() / double(RAND_MAX) * 4 - 2;
-        double x1 = rand() / double(RAND_MAX) * 20 - 10;
-        double dt = rand() / double(RAND_MAX) * 0.99 + 0.01;
-        double x2 = x1 + v * dt;
-        train[i][0] = x1;
-        train[i][1] = x2;
-        train[i][2] = dt;
-        train[i][3] = v;
+        train[i][0] = rand() / double(RAND_MAX) * 20 - 10;
+        train[i][1] = rand() / double(RAND_MAX) * 20 - 10;
+        train[i][2] = rand() / double(RAND_MAX) * 4 + 1;
+        train[i][3] = 1 * exp(- (train[i][0] * train[i][0] + train[i][1] * train[i][1]) / (train[i][2] * train[i][2]));
 
     }
 
-    for (int i = 0; i < 10000000; i++)
+    for (int i = 0; i < 100000000; i++)
     {
         double v = rand() / double(RAND_MAX) * 4 - 2;
         double x1 = rand() / double(RAND_MAX) * 20 - 10;
         double dt = rand() / double(RAND_MAX) * 0.99 + 0.01;
         double x2 = x1 + v * dt;
 
-        if (i % 200000 < 100000)
+        if (1)
         {
-            x1 = train[i % 1000][0];
-            x2 = train[i % 1000][1];
-            dt = train[i % 1000][2];
-            v  = train[i % 1000][3];
+            x1 = train[i % 10000][0];
+            x2 = train[i % 10000][1];
+            dt = train[i % 10000][2];
+            v  = train[i % 10000][3];
         }
 
         neurons[0] = x1;
@@ -63,53 +60,53 @@ int main()
         {
             neuro[i]->Calc();
         }
-        double terr = v - neurons[13];
-        err[13] = terr;
+        double terr = v - neurons[23];
+        err[23] = terr;
         for (int i = neuro.size() - 1; i >= 0 ; i--)
         {
             neuro[i]->Train();
         }
         serr += terr * terr;
         C++;
-        if (i % 100 == 0)
+        if (i % 100000 == 0)
         {
-            system("cls");
+            //system("cls");
+            std::cout << std::scientific;
 
-            for (int i = 0; i < L1->ins + 1; i++, std::cout << '\n')
-            {
-                std::cout << (i < L1->ins ? L1->in[i] : 1) << " : ";
-                for (int o = 0; o < L1->outs; o++)
-                {
-                    std::cout << L1->links[o + i * L1->outs] << ' ';
-                }
-            }
-            std::cout << '\n';
+            //for (int i = 0; i < L1->ins + 1; i++, std::cout << '\n')
+            //{
+            //    std::cout << (i < L1->ins ? L1->in[i] : 1) << " : ";
+            //    for (int o = 0; o < L1->outs; o++)
+            //    {
+            //        std::cout << L1->links1[o + i * L1->outs] << ' ';
+            //    }
+            //}
+            //std::cout << '\n';
+            //for (int i = 0; i < L1->ins + 1; i++, std::cout << '\n')
+            //{
+            //    std::cout << (i < L1->ins ? L1->in[i] : 1) << " : ";
+            //    for (int o = 0; o < L1->outs; o++)
+            //    {
+            //        std::cout << L1->links2[o + i * L1->outs] << ' ';
+            //    }
+            //}
+            //std::cout << '\n';
+            //for (int i = 0; i < L2->ins + 1; i++, std::cout << '\n')
+            //{
+            //    std::cout << (i < L2->ins ? L2->in[i] : 1) << " : ";
+            //    for (int o = 0; o < L2->outs; o++)
+            //    {
+            //        std::cout << L2->links[o + i * L2->outs] << ' ';
+            //    }
+            //}
+            //std::cout << '\n';
 
-            for (int i = 0; i < L2->ins + 1; i++, std::cout << '\n')
-            {
-                std::cout << (i < L2->ins ? L2->in[i] : 1) << " : ";
-                for (int o = 0; o < L2->outs; o++)
-                {
-                    std::cout << L2->links1[o + i * L2->outs] << ' ';
-                }
-            }
-            std::cout << '\n';
-
-            for (int i = 0; i < L2->ins + 1; i++, std::cout << '\n')
-            {
-                std::cout << (i < L2->ins ? L2->in[i] : 1) << " : ";
-                for (int o = 0; o < L2->outs; o++)
-                {
-                    std::cout << L2->links2[o + i * L2->outs] << ' ';
-                }
-            }
-            std::cout << '\n';
 
             std::cout << serr / C << '\n';
 
             C = 0;
             serr = 0;
-            system("pause");
+            //system("pause");
             //std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
 
