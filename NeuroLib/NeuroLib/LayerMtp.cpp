@@ -35,8 +35,8 @@ LayerMtp::LayerMtp(int _ins, int _outs, double* _in, double* _out, double* _ine,
 	links2 = new double[(ins + 1) * outs];
 	for (int l = 0; l < (ins + 1) * outs; l++)
 	{
-		links1[l] = rand() / double(RAND_MAX) * 2 - 1;
-		links2[l] = rand() / double(RAND_MAX) * 2 - 1;
+		links1[l] = rand() / double(RAND_MAX) * 0.2 - 0.1;
+		links2[l] = rand() / double(RAND_MAX) * 0.2 - 0.1;
 	}
 }
 
@@ -105,16 +105,27 @@ void LayerMtp::Calc()
 	}
 }
 
-void LayerMtp::Train()
+void LayerMtp::ResetErr()
 {
 	for (int i = 0; i < ins; i++)
 	{
 		inerr[i] = 0;
+	}
+}
+
+
+void LayerMtp::Train()
+{
+	for (int i = 0; i < ins; i++)
+	{
 		for (int o = 0; o < outs; o++)
 			inerr[i] += outerr[o] * (
 			links1[o + (i + 1) * outs] * DF1(outbase1[o]) * F2(outbase2[o]) + 
 			links2[o + (i + 1) * outs] * DF2(outbase2[o]) * F1(outbase1[o])) ;
 	}
+
+
+	float max = 0;
 
 	for (int o = 0; o < outs; o++)
 	{
@@ -124,7 +135,16 @@ void LayerMtp::Train()
 		{
 			links1[o + (i + 1) * outs] += outerr[o] * DF1(outbase1[o]) * F2(outbase2[o]) * in[i] * LF;
 			links2[o + (i + 1) * outs] += outerr[o] * DF2(outbase2[o]) * F1(outbase1[o]) * in[i] * LF;
+			max = fmax(max, abs(links1[o + (i + 1) * outs]));
+			max = fmax(max, abs(links2[o + (i + 1) * outs]));
 		}
 	}
+
+	for (int o = 0; o < outs; o++)
+		for (int i = 0; i < ins; i++)
+		{
+			links1[o + (i + 1) * outs] = abs(links1[o + (i + 1) * outs]) < max * 200 ? links1[o + (i + 1) * outs] * 0.9 : links1[o + (i + 1) * outs];
+			links2[o + (i + 1) * outs] = abs(links2[o + (i + 1) * outs]) < max * 200 ? links2[o + (i + 1) * outs] * 0.9 : links2[o + (i + 1) * outs];
+		}
 
 }

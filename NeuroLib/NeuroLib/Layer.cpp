@@ -87,11 +87,18 @@ void Layer::Calc()
 	}
 }
 
-void Layer::Train()
+void Layer::ResetErr()
 {
 	for (int i = 0; i < ins; i++)
 	{
 		inerr[i] = 0;
+	}
+}
+
+void Layer::Train()
+{
+	for (int i = 0; i < ins; i++)
+	{
 		for (int o = 0; o < outs; o++)
 			inerr[i] += outerr[o] * links[o + (i + 1) * outs] * DF(outbase[o]);
 	}

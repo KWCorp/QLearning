@@ -35,4 +35,6 @@ public:
 	virtual void Calc() = 0;
 
 	virtual void Train() = 0;
+
+	virtual void ResetErr() = 0;
 };

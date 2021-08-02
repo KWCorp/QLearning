@@ -22,6 +22,8 @@ public:
 
 	void INeuro::Train()override;
 
+	void INeuro::ResetErr()override;
+
 	double* in, *out, *inerr, *outerr, *outbase;
 
 	double* links, LF = 0.01;

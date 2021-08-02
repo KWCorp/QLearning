@@ -19,21 +19,54 @@ int main()
 
     double neurons[100];
     double err[100];
+    for (int i = 0; i < 100; i++)
+    {
+        neurons[i] = 0;
+    }
+    //neuro.push_back(new LayerMtp(3, 10, &neurons[0], &neurons[3], &err[0], &err[3]));
+    //neuro.push_back(new Layer(10, 10, &neurons[3], &neurons[13], &err[3], &err[13]));
+    //neuro.push_back(new Layer(10, 1, &neurons[13], &neurons[23], &err[13], &err[23]));
 
-    neuro.push_back(new LayerMtp(3, 10, &neurons[0], &neurons[3], &err[0], &err[3]));
-    neuro.push_back(new Layer(10, 10, &neurons[3], &neurons[13], &err[3], &err[13]));
-    neuro.push_back(new Layer(10, 1, &neurons[13], &neurons[23], &err[13], &err[23]));
-    auto L1 = ((LayerMtp*)neuro[0]); L1 ->LF = 0.001;
-    auto L2 = ((Layer*)neuro[1]); L2->LF = 0.001;
-    //L1->SetFunc(F_GATE, DF_GATE);
+    int inp = 0, inc = 3, outp = inp + inc, outc = 1;
+
+    int c = 10, co = inc, start = outp + outc;
+    neuro.push_back(new Layer(co, c, &neurons[inp], &neurons[start], &err[inp], &err[start]));
+    co = c;
+    c = 5;
+    neuro.push_back(new Layer(co, c, &neurons[start], &neurons[start + co], &err[start], &err[start + co]));
+    neuro.push_back(new LayerMtp(co, c, &neurons[start], &neurons[start + co + c], &err[start], &err[start + co + c]));
+
+    start += co;
+    co = c * 2;
+    c = 5;
+
+    neuro.push_back(new Layer(co, c, &neurons[start], &neurons[start + co], &err[start], &err[start + co]));
+    neuro.push_back(new LayerMtp(co, c, &neurons[start], &neurons[start + co + c], &err[start], &err[start + co + c]));
+
+    start += co;
+    co = c * 2;
+    c = outc;
+
+    neuro.push_back(new Layer(co, c, &neurons[start], &neurons[outp], &err[start], &err[outp]));
+
+    auto L1 = ((Layer*)neuro[0]); L1 ->LF = 0.0001;
+    auto L2 = ((Layer*)neuro[1]); L2->LF = 0.0001;
+    auto L3 = ((LayerMtp*)neuro[2]); L3->LF = 0.000001;
+    auto L4 = ((Layer*)neuro[3]); L4->LF = 0.00001;
+    auto L5 = ((LayerMtp*)neuro[4]); L5->LF = 0.000001;
+    auto L6 = ((Layer*)neuro[5]); L6->LF = 0.00001;
+
+    L3->SetFunc(F_GATE, DF_GATE);
+    L5->SetFunc(F_GATE, DF_GATE);
     double serr = 0, C = 0;
 
-    double train[10000][4];
-    for (int i = 0; i < 10000; i++)
+    double train[8000][4];
+    auto t_start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 8000; i++)
     {
-        train[i][0] = rand() / double(RAND_MAX) * 20 - 10;
-        train[i][1] = rand() / double(RAND_MAX) * 20 - 10;
-        train[i][2] = rand() / double(RAND_MAX) * 4 + 1;
+        train[i][0] = (i % 20) / 20.0 * 20 - 10;
+        train[i][1] = ((i / 20) % 20) / 20.0 * 20 - 10;
+        train[i][2] = ((i / 400) % 20) / 20.0 * 4 + 1;
         train[i][3] = 1 * exp(- (train[i][0] * train[i][0] + train[i][1] * train[i][1]) / (train[i][2] * train[i][2]));
 
     }
@@ -45,31 +78,35 @@ int main()
         double dt = rand() / double(RAND_MAX) * 0.99 + 0.01;
         double x2 = x1 + v * dt;
 
-        if (1)
+        if(1)
         {
-            x1 = train[i % 10000][0];
-            x2 = train[i % 10000][1];
-            dt = train[i % 10000][2];
-            v  = train[i % 10000][3];
+            int j = i % 8000;
+            x1 = train[j][0];
+            x2 = train[j][1];
+            dt = train[j][2];
+            v = train[j][3];
         }
 
         neurons[0] = x1;
         neurons[1] = x2;
         neurons[2] = dt;
         for (int i = 0; i < neuro.size(); i++)
-        {
             neuro[i]->Calc();
-        }
-        double terr = v - neurons[23];
-        err[23] = terr;
+
+        double terr = v - neurons[outp];
+        err[outp] = terr;
+
+        for (int i = 0; i < neuro.size(); i++)
+            neuro[i]->ResetErr();
+
         for (int i = neuro.size() - 1; i >= 0 ; i--)
-        {
             neuro[i]->Train();
-        }
-        serr += terr * terr;
+
+
         C++;
         if (i % 100000 == 0)
         {
+            auto t_end = std::chrono::high_resolution_clock::now();
             //system("cls");
             std::cout << std::scientific;
 
@@ -100,14 +137,35 @@ int main()
             //    }
             //}
             //std::cout << '\n';
+            serr = 0;
+            float KK = 0;
+            for (int j = 0; j < 8000; j++)
+            {
+                {
+                    x1 = train[j][0];
+                    x2 = train[j][1];
+                    dt = train[j][2];
+                    v = train[j][3];
+                }
 
+                neurons[0] = x1;
+                neurons[1] = x2;
+                neurons[2] = dt;
+                for (int i = 0; i < neuro.size(); i++)
+                    neuro[i]->Calc();
 
-            std::cout << serr / C << '\n';
-
+                double terr = v - neurons[outp];
+                err[outp] = terr;
+                serr += terr * terr;
+                KK++;
+            }
+            std::cout << serr / KK;
+            std::cout << "," << std::chrono::duration<double, std::milli>(t_end - t_start).count() / C << ":ms" << std::endl;
             C = 0;
             serr = 0;
             //system("pause");
             //std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            t_start = std::chrono::high_resolution_clock::now();
         }
 
     }
